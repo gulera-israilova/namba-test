@@ -36,14 +36,14 @@ export class Migration1726568378521 implements MigrationInterface {
     );
 
     await queryRunner.query(
-        `ALTER TABLE "order_product" ADD "quantity" integer NOT NULL DEFAULT '1'`,
+      `ALTER TABLE "order_product" ADD "quantity" integer NOT NULL DEFAULT '1'`,
     );
 
     await queryRunner.query(
-        `CREATE TYPE "public"."order_status_enum" AS ENUM('CREATED', 'UPDATED')`,
+      `CREATE TYPE "public"."order_status_enum" AS ENUM('CREATED', 'UPDATED')`,
     );
     await queryRunner.query(
-        `ALTER TABLE "order" ADD "status" "public"."order_status_enum"`,
+      `ALTER TABLE "order" ADD "status" "public"."order_status_enum"`,
     );
 
     await queryRunner.query(`
@@ -65,7 +65,7 @@ export class Migration1726568378521 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "order" DROP COLUMN "status"`);
     await queryRunner.query(`DROP TYPE "public"."order_status_enum"`);
     await queryRunner.query(
-        `ALTER TABLE "order_product" DROP COLUMN "quantity"`,
+      `ALTER TABLE "order_product" DROP COLUMN "quantity"`,
     );
     await queryRunner.query(
       `ALTER TABLE "order" DROP CONSTRAINT "FK_2cf0186a06ae00e4a2e54b70f29"`,
