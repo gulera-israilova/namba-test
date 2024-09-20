@@ -12,7 +12,8 @@ docker ps
 docker ps -a
 
 # Check logs of containers
-docker logs -f order_service
+docker logs -f order-create
+docker logs -f order-update
 # etc.
 
 ```
