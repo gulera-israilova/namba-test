@@ -1,0 +1,84 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: order_service
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_PORT_NUMBER=2181
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  order-create:
+    build:
+      context: ../
+      dockerfile: ./docker/order-create.dockerfile
+    container_name: order_create
+    command: npm run start:dev
+    volumes:
+      - ../order-create:/app/order-create
+    ports:
+      - "3000:3000"
+    environment:
+      DB_POSTGRES_HOST: "postgres"
+      DB_POSTGRES_PORT: "5432"
+      DB_POSTGRES_DATABASE: "order_service"
+      DB_POSTGRES_USER: "postgres"
+      DB_POSTGRES_PASSWORD: "postgres"
+      DB_POSTGRES_DEBUG: "false"
+      JWT_SECRET: "secret"
+      PORT: "3000"
+    depends_on:
+      - postgres
+
+  order-update:
+    build:
+      context: ../
+      dockerfile: ./docker/order-update.dockerfile
+    container_name: order_update
+    command: npm run start:dev
+    volumes:
+      - ../order-update:/app/order-update
+    ports:
+      - "4000:4000"
+    environment:
+      DB_POSTGRES_HOST: "postgres"
+      DB_POSTGRES_PORT: "5432"
+      DB_POSTGRES_DATABASE: "order_service"
+      DB_POSTGRES_USER: "postgres"
+      DB_POSTGRES_PASSWORD: "postgres"
+      DB_POSTGRES_DEBUG: "false"
+      PORT: "4000"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
