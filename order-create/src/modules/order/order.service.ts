@@ -81,14 +81,15 @@ export class OrderService {
   }
 
   async update(dto: UpdateOrderDto, user: CurrentUser) {
-    const item = await this.orderRepository.findOne({ where: { id: dto.id } });
+    const item = await this.orderRepository.findOne({
+      where: { id: dto.id },
+      relations: ['updatedBy'],
+    });
     if (!item) throw new NotFoundException();
 
     const order = this.orderRepository.create({
       ...item,
-      ...{
-        updatedBy: user,
-      },
+      updatedBy: user,
     });
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -98,7 +99,7 @@ export class OrderService {
       await queryRunner.startTransaction();
 
       await queryRunner.manager.getRepository(OrderEntity).save(order);
-      await this.kafkaProducer.sendOrderUpdatedMessage(item.id, order);
+      await this.kafkaProducer.sendOrderUpdatedMessage(item.id, item);
       await this.orderProductService.updateOrderProduct(
         queryRunner,
         item.id,
